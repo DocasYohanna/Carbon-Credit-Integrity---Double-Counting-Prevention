@@ -13,6 +13,7 @@
 (define-data-var next-credit-id uint u1)
 (define-data-var total-credits-issued uint u0)
 (define-data-var total-credits-retired uint u0)
+(define-data-var total-transfers uint u0)
 
 (define-map verified-issuers
     principal
@@ -81,6 +82,10 @@
 
 (define-read-only (get-total-credits-retired)
     (var-get total-credits-retired)
+)
+
+(define-read-only (get-total-transfers)
+    (var-get total-transfers)
 )
 
 (define-read-only (is-verified-issuer (issuer principal))
@@ -264,6 +269,8 @@
             amount: amount,
             timestamp: stacks-block-height,
         })
+
+        (var-set total-transfers (+ (var-get total-transfers) u1))
 
         (ok true)
     )
