@@ -8,6 +8,7 @@
 (define-constant ERR-DUPLICATE-CREDIT (err u107))
 (define-constant ERR-INVALID-VINTAGE (err u108))
 (define-constant ERR-TRANSFER-TO-SELF (err u109))
+(define-constant ERR-CREDIT-LOCKED (err u110))
 
 (define-data-var contract-owner principal tx-sender)
 (define-data-var next-credit-id uint u1)
@@ -55,6 +56,10 @@
         amount: uint,
         timestamp: uint,
     }
+)
+(define-map locked-credits
+    uint
+    uint
 )
 (define-map project-registrations
     (string-ascii 64)
@@ -118,6 +123,9 @@
 
 (define-read-only (get-credit-transfer (transfer-id uint))
     (map-get? credit-transfers transfer-id)
+)
+(define-read-only (get-credit-lock (credit-id uint))
+    (map-get? locked-credits credit-id)
 )
 
 (define-public (set-contract-owner (new-owner principal))
@@ -227,12 +235,14 @@
             (current-amount (get amount credit-data))
             (current-owner-balance (get-owner-balance current-owner))
             (recipient-balance (get-owner-balance recipient))
+            (lock-data (get-credit-lock credit-id))
         )
         (asserts! (is-eq tx-sender current-owner) ERR-NOT-AUTHORIZED)
         (asserts! (not (is-eq current-owner recipient)) ERR-TRANSFER-TO-SELF)
         (asserts! (> amount u0) ERR-INVALID-AMOUNT)
         (asserts! (>= current-amount amount) ERR-INSUFFICIENT-BALANCE)
         (asserts! (not (get is-retired credit-data)) ERR-ALREADY-RETIRED)
+        (asserts! (or (is-none lock-data) (> stacks-block-height (unwrap-panic lock-data))) ERR-CREDIT-LOCKED)
 
         (if (is-eq current-amount amount)
             (begin
@@ -316,6 +326,26 @@
         (map-set owner-balances current-owner (- current-owner-balance amount))
         (var-set total-credits-retired (+ (var-get total-credits-retired) amount))
 
+        (ok true)
+    )
+)
+(define-public (lock-credit (credit-id uint) (lock-until uint))
+    (let ((credit-data (unwrap! (map-get? carbon-credits credit-id) ERR-CREDIT-NOT-FOUND))
+          (current-owner (get owner credit-data)))
+        (asserts! (is-eq tx-sender current-owner) ERR-NOT-AUTHORIZED)
+        (asserts! (> lock-until stacks-block-height) ERR-INVALID-AMOUNT)
+        (map-set locked-credits credit-id lock-until)
+        (ok true)
+    )
+)
+(define-public (unlock-credit (credit-id uint))
+    (let ((credit-data (unwrap! (map-get? carbon-credits credit-id) ERR-CREDIT-NOT-FOUND))
+          (current-owner (get owner credit-data))
+          (lock-data (get-credit-lock credit-id)))
+        (asserts! (is-eq tx-sender current-owner) ERR-NOT-AUTHORIZED)
+        (asserts! (is-some lock-data) ERR-INVALID-CREDIT)
+        (asserts! (>= stacks-block-height (unwrap-panic lock-data)) ERR-NOT-AUTHORIZED)
+        (map-delete locked-credits credit-id)
         (ok true)
     )
 )

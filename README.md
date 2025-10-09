@@ -17,6 +17,7 @@ Current carbon markets suffer from:
 - ♻️ **Credit Retirement** - Permanent retirement system to prevent reuse
 - 📈 **Market Statistics** - Real-time market data and analytics
 - 🔍 **Audit Trail** - Complete transaction history for each credit
+- 🔒 **Credit Locking** - Temporarily lock credits to prevent transfers during compliance periods
 
 ## 🚀 Quick Start
 
@@ -81,9 +82,23 @@ clarinet deployments apply -p deployments/default.testnet-plan.yaml
 ### 5. Retire Credits
 
 ```clarity
-(contract-call? .carbon-credit-integrity retire-carbon-credit 
+(contract-call? .carbon-credit-integrity retire-carbon-credit
     u1            ; credit-id
     u500)         ; amount to retire
+```
+
+### 6. Lock Credits
+
+```clarity
+(contract-call? .carbon-credit-integrity lock-credit
+    u1            ; credit-id
+    u100000)      ; lock-until block height
+```
+
+### 7. Unlock Credits
+
+```clarity
+(contract-call? .carbon-credit-integrity unlock-credit u1)
 ```
 
 ## 🔍 Verification Functions
@@ -106,6 +121,12 @@ clarinet deployments apply -p deployments/default.testnet-plan.yaml
 (contract-call? .carbon-credit-integrity get-market-statistics)
 ```
 
+### Check Credit Lock Status
+
+```clarity
+(contract-call? .carbon-credit-integrity get-credit-lock u1)
+```
+
 ## 📊 Data Structures
 
 ### Carbon Credit
@@ -125,6 +146,9 @@ clarinet deployments apply -p deployments/default.testnet-plan.yaml
 - `methodology` - Carbon methodology used
 - `verification-standard` - Verification standard applied
 
+### Credit Lock
+- `lock-until` - Block height until which the credit is locked
+
 ## 🛡️ Security Features
 
 - ✅ **Issuer Verification** - Only pre-approved issuers can create credits
@@ -132,6 +156,7 @@ clarinet deployments apply -p deployments/default.testnet-plan.yaml
 - 🚫 **Double Spending Prevention** - Credits cannot be spent twice
 - ♻️ **Permanent Retirement** - Retired credits cannot be reactivated
 - 📋 **Project Validation** - Credits must reference registered projects
+- 🔒 **Credit Locking** - Prevent transfers during specified periods
 
 ## 🧪 Testing
 
@@ -158,6 +183,8 @@ clarinet test
 - `retire-carbon-credit` - Permanently retire credits
 - `batch-retire-credits` - Retire multiple credits at once
 - `bulk-issue-credits` - Issue multiple credits at once
+- `lock-credit` - Lock a credit until specified block height
+- `unlock-credit` - Unlock a credit after lock period expires
 
 ### Read-Only Functions
 - `get-carbon-credit` - Get credit details
@@ -166,6 +193,7 @@ clarinet test
 - `get-credit-audit-trail` - Get complete transaction history
 - `get-market-statistics` - Get market overview data
 - `verify-double-counting-prevention` - Check anti-double-counting measures
+- `get-credit-lock` - Get lock status of a credit
 
 ## 🔧 Configuration
 
