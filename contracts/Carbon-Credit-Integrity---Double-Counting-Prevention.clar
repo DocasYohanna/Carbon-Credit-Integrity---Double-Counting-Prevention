@@ -33,6 +33,7 @@
         issued-at: uint,
         retired-at: (optional uint),
         verification-standard: (string-ascii 16),
+        is-merged: bool,
     }
 )
 
@@ -207,6 +208,7 @@
             issued-at: stacks-block-height,
             retired-at: none,
             verification-standard: verification-standard,
+            is-merged: false,
         })
 
         (map-set issuer-balances {
@@ -262,6 +264,7 @@
                     (merge credit-data {
                         owner: recipient,
                         amount: amount,
+                        is-merged: false,
                     })
                 )
                 (var-set next-credit-id (+ new-credit-id u1))
@@ -317,6 +320,7 @@
                         amount: amount,
                         is-retired: true,
                         retired-at: (some stacks-block-height),
+                        is-merged: false,
                     })
                 )
                 (var-set next-credit-id (+ new-credit-id u1))
@@ -385,14 +389,14 @@
                 is-active: (not (get is-retired credit)),
             }
             {
-                issuer: tx-sender,
-                is-verified-issuer: false,
-                project-registered: false,
-                is-active: false,
-            }
-        )
-    )
-)
+                            issuer: tx-sender,
+                            is-verified-issuer: false,
+                            project-registered: false,
+                            is-active: false,
+                        }
+                    )
+                )
+            )
 
 (define-read-only (get-credit-audit-trail (credit-id uint))
     (let ((credit-data (map-get? carbon-credits credit-id)))

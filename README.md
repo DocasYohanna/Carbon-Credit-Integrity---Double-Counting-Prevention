@@ -18,6 +18,7 @@ Current carbon markets suffer from:
 - 📈 **Market Statistics** - Real-time market data and analytics
 - 🔍 **Audit Trail** - Complete transaction history for each credit
 - 🔒 **Credit Locking** - Temporarily lock credits to prevent transfers during compliance periods
+- 🔄 **Credit Merging** - Combine multiple credits from the same project into a single credit for efficiency
 
 ## 🚀 Quick Start
 
@@ -98,6 +99,13 @@ clarinet deployments apply -p deployments/default.testnet-plan.yaml
 ### 7. Unlock Credits
 
 ```clarity
+### 8. Merge Credits
+
+```clarity
+(contract-call? .carbon-credit-integrity merge-carbon-credits
+    u1            ; credit-id-1
+    u2)           ; credit-id-2
+```
 (contract-call? .carbon-credit-integrity unlock-credit u1)
 ```
 
@@ -148,6 +156,7 @@ clarinet deployments apply -p deployments/default.testnet-plan.yaml
 
 ### Credit Lock
 - `lock-until` - Block height until which the credit is locked
+- 🔄 **Credit Merging** - Combine credits to reduce fragmentation and improve efficiency
 
 ## 🛡️ Security Features
 
@@ -174,6 +183,7 @@ clarinet test
 
 ## 📝 Contract Functions
 
+- `merge-carbon-credits` - Merge two credits from the same project into one
 ### Public Functions
 - `add-verified-issuer` - Add authorized issuer (admin only)
 - `remove-verified-issuer` - Remove issuer authorization (admin only)
