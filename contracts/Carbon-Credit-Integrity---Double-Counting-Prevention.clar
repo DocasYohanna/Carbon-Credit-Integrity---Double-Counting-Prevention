@@ -354,6 +354,68 @@
     )
 )
 
+(define-public (merge-carbon-credits
+        (credit-id-1 uint)
+        (credit-id-2 uint)
+    )
+    (let (
+            (credit-1 (unwrap! (map-get? carbon-credits credit-id-1) ERR-CREDIT-NOT-FOUND))
+            (credit-2 (unwrap! (map-get? carbon-credits credit-id-2) ERR-CREDIT-NOT-FOUND))
+            (owner-1 (get owner credit-1))
+            (owner-2 (get owner credit-2))
+            (project-1 (get project-id credit-1))
+            (project-2 (get project-id credit-2))
+            (issuer-1 (get issuer credit-1))
+            (issuer-2 (get issuer credit-2))
+            (vintage-1 (get vintage credit-1))
+            (vintage-2 (get vintage credit-2))
+            (amount-1 (get amount credit-1))
+            (amount-2 (get amount credit-2))
+            (methodology-1 (get methodology credit-1))
+            (methodology-2 (get methodology credit-2))
+            (verification-1 (get verification-standard credit-1))
+            (verification-2 (get verification-standard credit-2))
+            (new-credit-id (var-get next-credit-id))
+            (lock-1 (get-credit-lock credit-id-1))
+            (lock-2 (get-credit-lock credit-id-2))
+        )
+        (asserts! (is-eq tx-sender owner-1) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq tx-sender owner-2) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq project-1 project-2) ERR-INVALID-CREDIT)
+        (asserts! (is-eq issuer-1 issuer-2) ERR-INVALID-CREDIT)
+        (asserts! (is-eq vintage-1 vintage-2) ERR-INVALID-VINTAGE)
+        (asserts! (is-eq methodology-1 methodology-2) ERR-INVALID-CREDIT)
+        (asserts! (is-eq verification-1 verification-2) ERR-INVALID-CREDIT)
+        (asserts! (not (get is-retired credit-1)) ERR-ALREADY-RETIRED)
+        (asserts! (not (get is-retired credit-2)) ERR-ALREADY-RETIRED)
+        (asserts! (not (get is-merged credit-1)) ERR-INVALID-CREDIT)
+        (asserts! (not (get is-merged credit-2)) ERR-INVALID-CREDIT)
+        (asserts! (or (is-none lock-1) (> stacks-block-height (unwrap-panic lock-1))) ERR-CREDIT-LOCKED)
+        (asserts! (or (is-none lock-2) (> stacks-block-height (unwrap-panic lock-2))) ERR-CREDIT-LOCKED)
+
+        (map-set carbon-credits new-credit-id {
+            issuer: issuer-1,
+            owner: tx-sender,
+            project-id: project-1,
+            vintage: vintage-1,
+            amount: (+ amount-1 amount-2),
+            methodology: methodology-1,
+            is-retired: false,
+            issued-at: stacks-block-height,
+            retired-at: none,
+            verification-standard: verification-1,
+            is-merged: true,
+        })
+
+        (map-set carbon-credits credit-id-1 (merge credit-1 { is-merged: true }))
+        (map-set carbon-credits credit-id-2 (merge credit-2 { is-merged: true }))
+
+        (var-set next-credit-id (+ new-credit-id u1))
+
+        (ok new-credit-id)
+    )
+)
+
 (define-public (batch-retire-credits
         (credit-ids (list 10 uint))
         (amounts (list 10 uint))

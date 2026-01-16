@@ -235,3 +235,21 @@ MIT License - see LICENSE file for details
 ---
 
 Built with ❤️ for a sustainable future 🌱
+
+## 🚀 New Feature: Credit Merging
+
+We've rolled out the `merge-carbon-credits` function to revolutionize how carbon credits are managed! This powerful tool lets you seamlessly combine two credits from the same project into one, cutting down on fragmentation and boosting efficiency for credit holders.
+
+### ✨ Key Benefits
+- 🔄 **Reduce Fragmentation**: Merge scattered credits into cohesive units
+- ⚡ **Boost Efficiency**: Simplify operations and potentially lower costs
+- 🛡️ **Maintain Integrity**: Strict validation ensures only compatible credits can merge
+
+### 📋 How to Use
+Call the function with two credit IDs to create a new merged credit:
+
+```clarity
+(contract-call? .carbon-credit-integrity merge-carbon-credits u1 u2)
+```
+
+This returns the new credit ID, while marking the originals as merged. Perfect for optimizing your carbon portfolio! 🌱💚 #GreenTech #CarbonTrading
